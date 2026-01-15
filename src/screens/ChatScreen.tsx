@@ -11,6 +11,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { useChatStore } from '../store/chatStore';
 import { sendMessage, getSessionMessages, getSession, createSession } from '../services/api';
@@ -136,10 +137,15 @@ export default function ChatScreen() {
   );
 
   return (
-    <Container>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {useChatStore.getState().currentSession?.title || 'Chat'}
+        </Text>
+      </View>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {messages.length === 0 ? (
@@ -185,13 +191,29 @@ export default function ChatScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </Container>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    backgroundColor: '#fff',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
   },
   listContent: {
     padding: 16,
