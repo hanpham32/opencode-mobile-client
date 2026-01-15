@@ -147,6 +147,18 @@ export default function ChatScreen() {
     setLoading(true);
     setError(null);
 
+    const userMessageResponse: SessionMessageResponse = {
+      info: {
+        id: `local-${Date.now()}`,
+        sessionID: sessionId,
+        role: 'user',
+        time: { created: Date.now() },
+      },
+      parts: [{ id: `part-${Date.now()}`, sessionID: sessionId, messageID: `local-${Date.now()}`, type: 'text', text: content }],
+    };
+
+    addMessage(userMessageResponse);
+
     try {
       const response = await sendMessage(
         sessionId,
