@@ -24,9 +24,9 @@ type RootStackParamList = { Sessions: undefined; Chat: { sessionId?: string } };
 function formatMessageText(parts?: MessagePart[]): string {
   if (!parts || !Array.isArray(parts)) return '';
   const textParts = parts
-    .filter((p) => p && p.type === 'text' && p.text)
+    .filter((p) => p && p.type === 'text' && p.text && p.text.trim())
     .map((p) => p.text || '');
-  return textParts.join('\n');
+  return textParts.join('\n').trim();
 }
 
 interface MessageItemProps {
@@ -37,6 +37,8 @@ function MessageBubble({ message }: MessageItemProps) {
   const isUser = message.info.role === 'user';
   const content = formatMessageText(message.parts);
   
+  if (!content) return null;
+
   return (
     <View style={[
       styles.bubbleContainer,
@@ -270,7 +272,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
     backgroundColor: '#fff',
@@ -297,7 +299,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContent: {
-    padding: 16,
+    paddingTop: 8,
+    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   emptyContainer: {
@@ -329,7 +332,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bubbleContainer: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   userBubbleContainer: {
     alignItems: 'flex-end',
@@ -339,9 +342,9 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '85%',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 18,
   },
   userBubble: {
     backgroundColor: '#007AFF',
