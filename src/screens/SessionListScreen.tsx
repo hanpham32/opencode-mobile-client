@@ -7,11 +7,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Session } from '../types/chat';
 import { getSessions, deleteSession, createSession } from '../services/api';
-import Container from '../components/Container';
+import { useChatStore } from '../store/chatStore';
+import { getTheme, ThemeMode } from '../theme';
+import ThemeToggle from '../components/ThemeToggle';
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -30,30 +34,33 @@ function formatDate(timestamp: number): string {
   }
 }
 
-function getFirstLine(text: string): string {
-  return text.split('\n')[0].slice(0, 50);
-}
-
 interface SessionItemProps {
   session: Session;
   onPress: () => void;
   onDelete: () => void;
+  colors: ReturnType<typeof getTheme>;
 }
 
-function SessionItem({ session, onPress, onDelete }: SessionItemProps) {
+function SessionItem({ session, onPress, onDelete, colors }: SessionItemProps) {
   return (
-    <TouchableOpacity style={styles.sessionItem} onPress={onPress} onLongPress={onDelete}>
+    <TouchableOpacity 
+      style={[styles.sessionItem, { backgroundColor: colors.itemBackground }]} 
+      onPress={onPress} 
+      onLongPress={onDelete}
+    >
       <View style={styles.sessionContent}>
-        <Text style={styles.sessionTitle}>{session.title || 'Untitled Session'}</Text>
-        <Text style={styles.sessionDate}>{formatDate(session.time.updated)}</Text>
+        <Text style={[styles.sessionTitle, { color: colors.text }]}>{session.title || 'Untitled Session'}</Text>
+        <Text style={[styles.sessionDate, { color: colors.textSecondary }]}>{formatDate(session.time.updated)}</Text>
       </View>
-      <Text style={styles.sessionDir}>{session.directory.split('/').pop()}</Text>
+      <Text style={[styles.sessionDir, { color: colors.textSecondary }]}>{session.directory.split('/').pop()}</Text>
     </TouchableOpacity>
   );
 }
 
 export default function SessionListScreen() {
   const navigation = useNavigation<any>();
+  const theme = useChatStore((state) => state.theme);
+  const colors = getTheme(theme as ThemeMode);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -104,21 +111,26 @@ export default function SessionListScreen() {
 
   if (loading) {
     return (
-      <Container>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+        <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.textPrimary} />
         </View>
-      </Container>
+      </SafeAreaView>
     );
   }
 
   return (
-    <Container>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sessions</Text>
-        <TouchableOpacity style={styles.newButton} onPress={handleCreateSession}>
-          <Text style={styles.newButtonText}>+ New</Text>
-        </TouchableOpacity>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
+      <View style={[styles.header, { backgroundColor: colors.headerBackground, borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Sessions</Text>
+        <View style={styles.headerActions}>
+          <ThemeToggle />
+          <TouchableOpacity style={[styles.newButton, { backgroundColor: colors.primary }]} onPress={handleCreateSession}>
+            <Text style={[styles.newButtonText, { color: colors.primaryText }]}>+ New</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       <FlatList
@@ -129,24 +141,32 @@ export default function SessionListScreen() {
             session={item}
             onPress={() => handleSessionPress(item)}
             onDelete={() => handleDeleteSession(item.id)}
+            colors={colors}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { backgroundColor: colors.background }]}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={handleRefresh}
+            tintColor={colors.textPrimary}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No sessions yet</Text>
-            <Text style={styles.emptySubtext}>Tap + New to start a conversation</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No sessions yet</Text>
+            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Tap + New to start a conversation</Text>
           </View>
         }
       />
-    </Container>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -159,21 +179,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
   },
   newButton: {
-    backgroundColor: '#007AFF',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   newButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -181,15 +202,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sessionItem: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   sessionContent: {
     flexDirection: 'row',
@@ -200,16 +215,13 @@ const styles = StyleSheet.create({
   sessionTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#000',
     flex: 1,
   },
   sessionDate: {
     fontSize: 13,
-    color: '#8E8E93',
   },
   sessionDir: {
     fontSize: 13,
-    color: '#8E8E93',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -218,11 +230,9 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#8E8E93',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#C7C7CC',
   },
 });

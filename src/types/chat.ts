@@ -95,4 +95,5 @@ export interface ChatState {
   providers: Provider[];
   selectedProvider: Provider | null;
   selectedModel: Model | null;
+  theme: 'light' | 'dark';
 }

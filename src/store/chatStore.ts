@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { SessionMessageResponse, ChatState, Session, Provider, Model } from '../types/chat';
+import { ThemeMode } from '../theme';
 
 interface ChatStore extends ChatState {
   providers: Provider[];
   selectedProvider: Provider | null;
   selectedModel: Model | null;
+  theme: ThemeMode;
   addMessage: (message: SessionMessageResponse) => void;
   setMessages: (messages: SessionMessageResponse[]) => void;
   setLoading: (loading: boolean) => void;
@@ -17,9 +19,11 @@ interface ChatStore extends ChatState {
   setProviders: (providers: Provider[]) => void;
   setSelectedProvider: (provider: Provider | null) => void;
   setSelectedModel: (model: Model | null) => void;
+  setTheme: (theme: ThemeMode) => void;
+  toggleTheme: () => void;
 }
 
-export const useChatStore = create<ChatStore>((set) => ({
+export const useChatStore = create<ChatStore>((set, get) => ({
   messages: [],
   isLoading: false,
   error: null,
@@ -28,6 +32,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   providers: [],
   selectedProvider: null,
   selectedModel: null,
+  theme: 'light',
 
   addMessage: (message) =>
     set((state) => ({ messages: [...state.messages, message] })),
@@ -57,4 +62,11 @@ export const useChatStore = create<ChatStore>((set) => ({
   setSelectedProvider: (provider) => set({ selectedProvider: provider }),
 
   setSelectedModel: (model) => set({ selectedModel: model }),
+
+  setTheme: (theme) => set({ theme }),
+
+  toggleTheme: () => {
+    const current = get().theme;
+    set({ theme: current === 'light' ? 'dark' : 'light' });
+  },
 }));

@@ -16,7 +16,9 @@ import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { useChatStore } from '../store/chatStore';
 import { sendMessage, getSessionMessages, getSession, createSession, getProviders } from '../services/api';
 import { MessagePart, SessionMessageResponse } from '../types/chat';
+import { getTheme, ThemeMode } from '../theme';
 import ModelSelector from '../components/ModelSelector';
+import ThemeToggle from '../components/ThemeToggle';
 
 type ChatRouteProp = RouteProp<RootStackParamList, 'Chat'>;
 type RootStackParamList = { Sessions: undefined; Chat: { sessionId?: string } };
@@ -31,9 +33,10 @@ function formatMessageText(parts?: MessagePart[]): string {
 
 interface MessageItemProps {
   message: SessionMessageResponse;
+  colors: ReturnType<typeof getTheme>;
 }
 
-function MessageBubble({ message }: MessageItemProps) {
+function MessageBubble({ message, colors }: MessageItemProps) {
   const isUser = message.info.role === 'user';
   const content = formatMessageText(message.parts);
   
@@ -46,11 +49,11 @@ function MessageBubble({ message }: MessageItemProps) {
     ]}>
       <View style={[
         styles.bubble,
-        isUser ? styles.userBubble : styles.assistantBubble,
+        isUser ? { backgroundColor: colors.userBubble } : { backgroundColor: colors.assistantBubble },
       ]}>
         <Text style={[
           styles.bubbleText,
-          isUser ? styles.userBubbleText : styles.assistantBubbleText,
+          isUser ? { color: colors.userBubbleText } : { color: colors.assistantBubbleText },
         ]}>
           {content}
         </Text>
@@ -62,6 +65,8 @@ function MessageBubble({ message }: MessageItemProps) {
 export default function ChatScreen() {
   const route = useRoute<ChatRouteProp>();
   const navigation = useNavigation<any>();
+  const theme = useChatStore((state) => state.theme);
+  const colors = getTheme(theme as ThemeMode);
   const {
     messages,
     setMessages,
@@ -178,39 +183,42 @@ export default function ChatScreen() {
   };
 
   const renderMessage = ({ item }: { item: SessionMessageResponse }) => (
-    <MessageBubble message={item} />
+    <MessageBubble message={item} colors={colors} />
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
+      <View style={[styles.header, { backgroundColor: colors.headerBackground, borderBottomColor: colors.border }]}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
+          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
             {useChatStore.getState().currentSession?.title || 'Chat'}
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.modelButton}
-          onPress={() => setModelSelectorVisible(true)}
-        >
-          <Text style={styles.modelButtonText} numberOfLines={1}>
-            {selectedModel?.name.split('/').pop() || 'Select Model'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <ThemeToggle />
+          <TouchableOpacity
+            style={[styles.modelButton, { backgroundColor: colors.surfaceSecondary }]}
+            onPress={() => setModelSelectorVisible(true)}
+          >
+            <Text style={[styles.modelButtonText, { color: colors.textPrimary }]} numberOfLines={1}>
+              {selectedModel?.name.split('/').pop() || 'Select Model'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        style={[styles.keyboardView, { backgroundColor: colors.background }]}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {messages.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>Start a conversation</Text>
-            <Text style={styles.emptySubtitle}>
+          <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>Start a conversation</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
               Type a message to begin chatting with OpenCode
             </Text>
             {selectedModel && (
-              <Text style={styles.modelHint}>
+              <Text style={[styles.modelHint, { color: colors.textSecondary }]}>
                 Using: {selectedModel.name}
               </Text>
             )}
@@ -221,33 +229,33 @@ export default function ChatScreen() {
             data={messages}
             keyExtractor={(item) => item.info.id}
             renderItem={renderMessage}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[styles.listContent, { backgroundColor: colors.background }]}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           />
         )}
 
         {isLoading && (
-          <View style={styles.loadingIndicator}>
-            <ActivityIndicator size="small" color="#007AFF" />
+          <View style={[styles.loadingIndicator, { backgroundColor: colors.background }]}>
+            <ActivityIndicator size="small" color={colors.textPrimary} />
           </View>
         )}
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
             value={inputText}
             onChangeText={setInputText}
             placeholder="Type a message..."
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor={colors.textSecondary}
             multiline
             maxLength={1000}
           />
           <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
+            style={[styles.sendButton, (!inputText.trim() || isLoading) && { backgroundColor: colors.border }]}
             onPress={handleSend}
             disabled={!inputText.trim() || isLoading}
           >
-            <Text style={styles.sendButtonText}>Send</Text>
+            <Text style={[styles.sendButtonText, { color: inputText.trim() && !isLoading ? colors.primaryText : colors.textSecondary }]}>Send</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -262,7 +270,6 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   keyboardView: {
     flex: 1,
@@ -274,8 +281,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-    backgroundColor: '#fff',
   },
   headerLeft: {
     flex: 1,
@@ -284,10 +289,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   modelButton: {
-    backgroundColor: '#F2F2F7',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -295,7 +303,6 @@ const styles = StyleSheet.create({
   },
   modelButtonText: {
     fontSize: 14,
-    color: '#007AFF',
     fontWeight: '600',
   },
   listContent: {
@@ -312,18 +319,15 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000',
     marginBottom: 8,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#8E8E93',
     textAlign: 'center',
   },
   modelHint: {
     fontSize: 14,
-    color: '#8E8E93',
     marginTop: 16,
     fontStyle: 'italic',
   },
@@ -346,56 +350,33 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 18,
   },
-  userBubble: {
-    backgroundColor: '#007AFF',
-    borderBottomRightRadius: 4,
-  },
-  assistantBubble: {
-    backgroundColor: '#E5E5EA',
-    borderBottomLeftRadius: 4,
-  },
   bubbleText: {
     fontSize: 16,
     lineHeight: 22,
-  },
-  userBubbleText: {
-    color: '#fff',
-  },
-  assistantBubbleText: {
-    color: '#000',
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
     alignItems: 'flex-end',
-    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: '#F2F2F7',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     marginRight: 12,
     fontSize: 16,
-    color: '#000',
   },
   sendButton: {
-    backgroundColor: '#007AFF',
     borderRadius: 20,
     paddingHorizontal: 20,
     paddingVertical: 10,
     justifyContent: 'center',
   },
-  sendButtonDisabled: {
-    backgroundColor: '#B0B0B8',
-  },
   sendButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
