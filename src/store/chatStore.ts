@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { SessionMessageResponse, ChatState, Session } from '../types/chat';
+import { SessionMessageResponse, ChatState, Session, Provider, Model } from '../types/chat';
 
 interface ChatStore extends ChatState {
-  sessions: Session[];
-  currentSession: Session | null;
+  providers: Provider[];
+  selectedProvider: Provider | null;
+  selectedModel: Model | null;
   addMessage: (message: SessionMessageResponse) => void;
   setMessages: (messages: SessionMessageResponse[]) => void;
   setLoading: (loading: boolean) => void;
@@ -13,6 +14,9 @@ interface ChatStore extends ChatState {
   setSessions: (sessions: Session[]) => void;
   addSession: (session: Session) => void;
   removeSession: (sessionId: string) => void;
+  setProviders: (providers: Provider[]) => void;
+  setSelectedProvider: (provider: Provider | null) => void;
+  setSelectedModel: (model: Model | null) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -21,6 +25,9 @@ export const useChatStore = create<ChatStore>((set) => ({
   error: null,
   currentSession: null,
   sessions: [],
+  providers: [],
+  selectedProvider: null,
+  selectedModel: null,
 
   addMessage: (message) =>
     set((state) => ({ messages: [...state.messages, message] })),
@@ -44,4 +51,10 @@ export const useChatStore = create<ChatStore>((set) => ({
     set((state) => ({
       sessions: state.sessions.filter((s) => s.id !== sessionId),
     })),
+
+  setProviders: (providers) => set({ providers }),
+
+  setSelectedProvider: (provider) => set({ selectedProvider: provider }),
+
+  setSelectedModel: (model) => set({ selectedModel: model }),
 }));

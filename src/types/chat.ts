@@ -1,3 +1,30 @@
+export interface Model {
+  id: string;
+  providerID: string;
+  name: string;
+  family: string;
+  status: string;
+  cost?: {
+    input: number;
+    output: number;
+    cache: { read: number; write: number };
+  };
+}
+
+export interface Provider {
+  id: string;
+  source: string;
+  name: string;
+  env: string[];
+  options: Record<string, unknown>;
+  models: Record<string, Model>;
+}
+
+export interface ProvidersResponse {
+  providers: Provider[];
+  default: Record<string, string>;
+}
+
 export interface Session {
   id: string;
   slug: string;
@@ -65,4 +92,7 @@ export interface ChatState {
   error: string | null;
   currentSession: Session | null;
   sessions: Session[];
+  providers: Provider[];
+  selectedProvider: Provider | null;
+  selectedModel: Model | null;
 }

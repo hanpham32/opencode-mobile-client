@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import ChatScreen from '../screens/ChatScreen';
 import SessionListScreen from '../screens/SessionListScreen';
-import { getSessions } from '../services/api';
+import { getSessions, getProviders } from '../services/api';
 import { useChatStore } from '../store/chatStore';
 
 export type RootStackParamList = {
@@ -14,22 +14,34 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigation() {
-  const { setSessions } = useChatStore();
+  const { setSessions, setProviders, setSelectedProvider, setSelectedModel } = useChatStore();
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const init = async () => {
       try {
-        const sessionList = await getSessions();
+        const [sessionList, providerList] = await Promise.all([
+          getSessions(),
+          getProviders(),
+        ]);
         setSessions(sessionList);
+        setProviders(providerList);
+        if (providerList.length > 0) {
+          const firstProvider = providerList[0];
+          setSelectedProvider(firstProvider);
+          const firstModel = Object.values(firstProvider.models)[0];
+          if (firstModel) {
+            setSelectedModel(firstModel);
+          }
+        }
         setInitialized(true);
       } catch (error) {
-        console.error('Failed to load sessions:', error);
+        console.error('Failed to initialize:', error);
         setInitialized(true);
       }
     };
     init();
-  }, [setSessions]);
+  }, [setSessions, setProviders, setSelectedProvider, setSelectedModel]);
 
   if (!initialized) {
     return null;

@@ -14,9 +14,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { useChatStore } from '../store/chatStore';
-import { sendMessage, getSessionMessages, getSession, createSession } from '../services/api';
+import { sendMessage, getSessionMessages, getSession, createSession, getProviders } from '../services/api';
 import { MessagePart, SessionMessageResponse } from '../types/chat';
-import Container from '../components/Container';
+import ModelSelector from '../components/ModelSelector';
 
 type ChatRouteProp = RouteProp<RootStackParamList, 'Chat'>;
 type RootStackParamList = { Sessions: undefined; Chat: { sessionId?: string } };
@@ -27,10 +27,6 @@ function formatMessageText(parts?: MessagePart[]): string {
     .filter((p) => p && p.type === 'text' && p.text)
     .map((p) => p.text || '');
   return textParts.join('\n');
-}
-
-function getMessageSender(role: string): 'user' | 'assistant' {
-  return role === 'user' ? 'user' : 'assistant';
 }
 
 interface MessageItemProps {
@@ -64,10 +60,41 @@ function MessageBubble({ message }: MessageItemProps) {
 export default function ChatScreen() {
   const route = useRoute<ChatRouteProp>();
   const navigation = useNavigation<any>();
-  const { messages, setMessages, addMessage, isLoading, setLoading, setError, setCurrentSession, sessions, addSession } = useChatStore();
+  const {
+    messages,
+    setMessages,
+    addMessage,
+    isLoading,
+    setLoading,
+    setError,
+    setCurrentSession,
+    addSession,
+    providers,
+    setProviders,
+    selectedModel,
+    setSelectedModel,
+    selectedProvider,
+  } = useChatStore();
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [modelSelectorVisible, setModelSelectorVisible] = useState(false);
+
+  const loadProviders = useCallback(async () => {
+    try {
+      const providerList = await getProviders();
+      setProviders(providerList);
+      if (providerList.length > 0 && !selectedModel) {
+        const firstProvider = providerList[0];
+        const firstModel = Object.values(firstProvider.models)[0];
+        if (firstModel) {
+          setSelectedModel(firstModel);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load providers:', error);
+    }
+  }, [setProviders, selectedModel, setSelectedModel]);
 
   const initializeSession = useCallback(async (id?: string) => {
     setLoading(true);
@@ -91,19 +118,18 @@ export default function ChatScreen() {
       
       const messageData = await getSessionMessages(currentSessionId);
       setMessages(messageData);
-      
-      navigation.setOptions({ title: sessionData.title || 'Chat' });
     } catch (error) {
       console.error('Failed to initialize session:', error);
       setError('Failed to load session');
     } finally {
       setLoading(false);
     }
-  }, [route.params?.sessionId, setLoading, setError, setMessages, setCurrentSession, addSession, navigation]);
+  }, [route.params?.sessionId, setLoading, setError, setMessages, setCurrentSession, addSession]);
 
   useEffect(() => {
     initializeSession();
-  }, [initializeSession]);
+    loadProviders();
+  }, [initializeSession, loadProviders]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -122,7 +148,12 @@ export default function ChatScreen() {
     setError(null);
 
     try {
-      const response = await sendMessage(sessionId, content);
+      const response = await sendMessage(
+        sessionId,
+        content,
+        selectedModel?.id,
+        selectedProvider?.id
+      );
       addMessage(response);
     } catch (err) {
       console.error('Send error:', err);
@@ -140,9 +171,19 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {useChatStore.getState().currentSession?.title || 'Chat'}
-        </Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {useChatStore.getState().currentSession?.title || 'Chat'}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.modelButton}
+          onPress={() => setModelSelectorVisible(true)}
+        >
+          <Text style={styles.modelButtonText} numberOfLines={1}>
+            {selectedModel?.name.split('/').pop() || 'Select Model'}
+          </Text>
+        </TouchableOpacity>
       </View>
       <KeyboardAvoidingView
         style={styles.keyboardView}
@@ -154,6 +195,11 @@ export default function ChatScreen() {
             <Text style={styles.emptySubtitle}>
               Type a message to begin chatting with OpenCode
             </Text>
+            {selectedModel && (
+              <Text style={styles.modelHint}>
+                Using: {selectedModel.name}
+              </Text>
+            )}
           </View>
         ) : (
           <FlatList
@@ -191,6 +237,10 @@ export default function ChatScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      <ModelSelector
+        visible={modelSelectorVisible}
+        onClose={() => setModelSelectorVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -204,16 +254,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
     backgroundColor: '#fff',
   },
+  headerLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#000',
+  },
+  modelButton: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    maxWidth: 150,
+  },
+  modelButtonText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '600',
   },
   listContent: {
     padding: 16,
@@ -236,6 +305,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
     textAlign: 'center',
+  },
+  modelHint: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 16,
+    fontStyle: 'italic',
   },
   loadingIndicator: {
     padding: 8,
