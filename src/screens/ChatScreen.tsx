@@ -251,7 +251,7 @@ export default function ChatScreen() {
             maxLength={1000}
           />
           <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading) && { backgroundColor: colors.border }]}
+            style={[styles.sendButton, { backgroundColor: colors.primary }, (!inputText.trim() || isLoading) && { backgroundColor: colors.border }]}
             onPress={handleSend}
             disabled={!inputText.trim() || isLoading}
           >
