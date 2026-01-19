@@ -126,6 +126,9 @@ export default function SessionListScreen() {
       <View style={[styles.header, { backgroundColor: colors.headerBackground, borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Sessions</Text>
         <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
+            <Text style={[styles.settingsButtonText, { color: colors.text }]}>⚙</Text>
+          </TouchableOpacity>
           <ThemeToggle />
           <TouchableOpacity style={[styles.newButton, { backgroundColor: colors.primary }]} onPress={handleCreateSession}>
             <Text style={[styles.newButtonText, { color: colors.primaryText }]}>+ New</Text>
@@ -197,6 +200,13 @@ const styles = StyleSheet.create({
   newButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  settingsButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+  },
+  settingsButtonText: {
+    fontSize: 20,
   },
   listContent: {
     padding: 16,

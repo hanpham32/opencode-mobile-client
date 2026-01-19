@@ -3,12 +3,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import ChatScreen from '../screens/ChatScreen';
 import SessionListScreen from '../screens/SessionListScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import { getSessions, getProviders } from '../services/api';
 import { useChatStore } from '../store/chatStore';
 
 export type RootStackParamList = {
   Sessions: undefined;
   Chat: { sessionId?: string };
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -58,6 +60,11 @@ export default function AppNavigation() {
         <Stack.Screen
           name="Chat"
           component={ChatScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

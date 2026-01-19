@@ -6,6 +6,7 @@ interface ChatStore extends ChatState {
   providers: Provider[];
   selectedProvider: Provider | null;
   selectedModel: Model | null;
+  defaultModel: Model | null;
   theme: ThemeMode;
   addMessage: (message: SessionMessageResponse) => void;
   setMessages: (messages: SessionMessageResponse[]) => void;
@@ -19,6 +20,7 @@ interface ChatStore extends ChatState {
   setProviders: (providers: Provider[]) => void;
   setSelectedProvider: (provider: Provider | null) => void;
   setSelectedModel: (model: Model | null) => void;
+  setDefaultModel: (model: Model | null) => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
 }
@@ -32,6 +34,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   providers: [],
   selectedProvider: null,
   selectedModel: null,
+  defaultModel: null,
   theme: 'light',
 
   addMessage: (message) =>
@@ -62,6 +65,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   setSelectedProvider: (provider) => set({ selectedProvider: provider }),
 
   setSelectedModel: (model) => set({ selectedModel: model }),
+
+  setDefaultModel: (model) => set({ defaultModel: model }),
 
   setTheme: (theme) => set({ theme }),
 
