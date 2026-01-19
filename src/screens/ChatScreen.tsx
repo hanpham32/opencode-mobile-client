@@ -494,6 +494,7 @@ const styles = StyleSheet.create({
   },
   userBubbleContainer: {
     alignItems: 'flex-end',
+    marginVertical: 2,
   },
   assistantBubbleContainer: {
     alignItems: 'flex-start',
@@ -501,7 +502,7 @@ const styles = StyleSheet.create({
   bubble: {
     maxWidth: '85%',
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 2,
     borderRadius: 18,
   },
   bubbleText: {
