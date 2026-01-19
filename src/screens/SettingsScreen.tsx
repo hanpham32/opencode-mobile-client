@@ -17,7 +17,7 @@ export default function SettingsScreen() {
   const navigation = useNavigation<any>();
   const theme = useChatStore((state) => state.theme);
   const colors = getTheme(theme as ThemeMode);
-  const { defaultModel, setDefaultModel, selectedModel, setSelectedModel, providers } = useChatStore();
+  const { defaultModel, setDefaultModel, selectedModel, setSelectedModel, providers, theme: currentTheme, setTheme } = useChatStore();
   const [showModelSelector, setShowModelSelector] = useState(false);
 
   useEffect(() => {
@@ -87,6 +87,27 @@ export default function SettingsScreen() {
               </Text>
             </View>
           )}
+        </View>
+
+        <View style={[styles.section, { backgroundColor: colors.surface, borderBottomColor: colors.border, marginTop: 16 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Appearance</Text>
+          
+          <View style={[styles.optionGroup, { backgroundColor: colors.itemBackground }]}>
+            <TouchableOpacity
+              style={[styles.optionItem, { borderBottomColor: colors.border }]}
+              onPress={() => setTheme('light')}
+            >
+              <Text style={[styles.optionLabel, { color: colors.text }]}>Light</Text>
+              {currentTheme === 'light' && <Text style={[styles.optionCheck, { color: colors.textPrimary }]}>✓</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.optionItem}
+              onPress={() => setTheme('dark')}
+            >
+              <Text style={[styles.optionLabel, { color: colors.text }]}>Dark</Text>
+              {currentTheme === 'dark' && <Text style={[styles.optionCheck, { color: colors.textPrimary }]}>✓</Text>}
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -182,5 +203,25 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  optionGroup: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  optionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+  },
+  optionLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  optionCheck: {
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
