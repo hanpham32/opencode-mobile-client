@@ -1,4 +1,4 @@
-# OpenCode Zenbox
+# OpenCode Mobile Client
 
 A mobile client for OpenCode that brings AI-powered software engineering to your pocket. Built with React Native and Expo.
 
