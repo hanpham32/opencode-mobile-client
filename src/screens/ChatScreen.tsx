@@ -35,95 +35,163 @@ function formatMessageText(parts?: MessagePart[]): string {
 interface MessageItemProps {
   message: SessionMessageResponse;
   colors: ReturnType<typeof getTheme>;
+  showDivider?: boolean;
 }
 
-function MessageBubble({ message, colors }: MessageItemProps) {
-  const isUser = message.info.role === 'user';
+function MessageBubble({ message, colors, showDivider }: MessageItemProps) {
+  const isUser = message.info?.role === 'user';
   const content = formatMessageText(message.parts);
   
   if (!content) return null;
 
   const bubbleTextColor = isUser ? colors.userBubbleText : colors.assistantBubbleText;
 
-  return (
-    <View style={[
-      styles.bubbleContainer,
-      isUser ? styles.userBubbleContainer : styles.assistantBubbleContainer,
-    ]}>
-      <View style={[
-        styles.bubble,
-        isUser ? { backgroundColor: colors.userBubble } : { backgroundColor: colors.assistantBubble },
-      ]}>
-        <Markdown
-          style={{
-            text: {
-              color: bubbleTextColor,
-              fontSize: 16,
-              lineHeight: 22,
-            },
-            strong: {
-              fontWeight: '600',
-            },
-            em: {
-              fontStyle: 'italic',
-            },
-            blockquote: {
-              borderLeftWidth: 4,
-              borderLeftColor: bubbleTextColor,
-              paddingLeft: 12,
-              opacity: 0.8,
-            },
-            code_block: {
-              backgroundColor: 'rgba(0,0,0,0.1)',
-              padding: 12,
-              borderRadius: 8,
-              fontFamily: 'monospace',
-              fontSize: 14,
-            },
-            inline_code: {
-              backgroundColor: 'rgba(0,0,0,0.1)',
-              paddingHorizontal: 6,
-              paddingVertical: 2,
-              borderRadius: 4,
-              fontFamily: 'monospace',
-              fontSize: 14,
-            },
-            link: {
-              color: isUser ? '#FFFFFF' : '#007AFF',
-              textDecorationLine: 'underline',
-            },
-            bullet_list: {
-              marginLeft: 16,
-            },
-            ordered_list: {
-              marginLeft: 16,
-            },
-            list_item: {
-              marginBottom: 4,
-            },
-            heading1: {
-              fontSize: 22,
-              fontWeight: '700',
-              marginBottom: 8,
-            },
-            heading2: {
-              fontSize: 20,
-              fontWeight: '600',
-              marginBottom: 6,
-            },
-            heading3: {
-              fontSize: 18,
-              fontWeight: '600',
-              marginBottom: 4,
-            },
-            paragraph: {
-              marginBottom: 8,
-            },
-          }}
-        >
-          {content}
-        </Markdown>
+  if (isUser) {
+    return (
+      <View style={styles.userBubbleContainer}>
+        <View style={[styles.bubble, { backgroundColor: colors.userBubble }]}>
+          <Markdown
+            style={{
+              text: {
+                color: bubbleTextColor,
+                fontSize: 16,
+                lineHeight: 22,
+              },
+              strong: {
+                fontWeight: '600',
+              },
+              em: {
+                fontStyle: 'italic',
+              },
+              blockquote: {
+                borderLeftWidth: 4,
+                borderLeftColor: bubbleTextColor,
+                paddingLeft: 12,
+                opacity: 0.8,
+              },
+              code_block: {
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                padding: 12,
+                borderRadius: 8,
+                fontSize: 14,
+              },
+              inline_code: {
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                paddingHorizontal: 6,
+                paddingVertical: 2,
+                borderRadius: 4,
+                fontSize: 14,
+              },
+              link: {
+                color: '#FFFFFF',
+                textDecorationLine: 'underline',
+              },
+              bullet_list: {
+                marginLeft: 16,
+              },
+              ordered_list: {
+                marginLeft: 16,
+              },
+              list_item: {
+                marginBottom: 4,
+              },
+              heading1: {
+                fontSize: 22,
+                fontWeight: '700',
+                marginBottom: 8,
+              },
+              heading2: {
+                fontSize: 20,
+                fontWeight: '600',
+                marginBottom: 6,
+              },
+              heading3: {
+                fontSize: 18,
+                fontWeight: '600',
+                marginBottom: 4,
+              },
+              paragraph: {
+                marginBottom: 8,
+              },
+            }}
+          >
+            {content}
+          </Markdown>
+        </View>
       </View>
+    );
+  }
+
+  return (
+    <View style={styles.assistantMessageContainer}>
+      <Markdown
+        style={{
+          text: {
+            color: bubbleTextColor,
+            fontSize: 16,
+            lineHeight: 22,
+          },
+          strong: {
+            fontWeight: '600',
+          },
+          em: {
+            fontStyle: 'italic',
+          },
+          blockquote: {
+            borderLeftWidth: 4,
+            borderLeftColor: bubbleTextColor,
+            paddingLeft: 12,
+            opacity: 0.8,
+          },
+          code_block: {
+            backgroundColor: 'rgba(0,0,0,0.1)',
+            padding: 12,
+            borderRadius: 8,
+            fontSize: 14,
+          },
+          inline_code: {
+            backgroundColor: 'rgba(0,0,0,0.1)',
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+            borderRadius: 4,
+            fontSize: 14,
+          },
+          link: {
+            color: colors.textPrimary,
+            textDecorationLine: 'underline',
+          },
+          bullet_list: {
+            marginLeft: 16,
+          },
+          ordered_list: {
+            marginLeft: 16,
+          },
+          list_item: {
+            marginBottom: 4,
+          },
+          heading1: {
+            fontSize: 22,
+            fontWeight: '700',
+            marginBottom: 8,
+          },
+          heading2: {
+            fontSize: 20,
+            fontWeight: '600',
+            marginBottom: 6,
+          },
+          heading3: {
+            fontSize: 18,
+            fontWeight: '600',
+            marginBottom: 4,
+          },
+          paragraph: {
+            marginBottom: 8,
+          },
+        }}
+      >
+        {content}
+      </Markdown>
+      {showDivider && <View style={[styles.messageDivider, { backgroundColor: colors.border }]} />}
     </View>
   );
 }
@@ -147,6 +215,7 @@ export default function ChatScreen() {
     selectedModel,
     setSelectedModel,
     selectedProvider,
+    setSelectedProvider,
   } = useChatStore();
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
@@ -161,13 +230,14 @@ export default function ChatScreen() {
         const firstProvider = providerList[0];
         const firstModel = Object.values(firstProvider.models)[0];
         if (firstModel) {
+          setSelectedProvider(firstProvider);
           setSelectedModel(firstModel);
         }
       }
     } catch (error) {
       console.error('Failed to load providers:', error);
     }
-  }, [setProviders, selectedModel, setSelectedModel]);
+  }, [setProviders, setSelectedProvider, setSelectedModel, selectedModel]);
 
   const initializeSession = useCallback(async (id?: string) => {
     setLoading(true);
@@ -232,12 +302,14 @@ export default function ChatScreen() {
 
     addMessage(userMessageResponse);
 
+    console.log("model id:", selectedModel?.id)
+
     try {
       const response = await sendMessage(
         sessionId,
         content,
         selectedModel?.id,
-        selectedProvider?.id
+        selectedProvider?.id || undefined
       );
       addMessage(response);
     } catch (err) {
@@ -248,9 +320,13 @@ export default function ChatScreen() {
     }
   };
 
-  const renderMessage = ({ item }: { item: SessionMessageResponse }) => (
-    <MessageBubble message={item} colors={colors} />
-  );
+  const renderMessage = useCallback(({ item, index }: { item: SessionMessageResponse; index: number }) => {
+    const prevMessage = index > 0 ? messages[index - 1] : null;
+    const showDivider = prevMessage?.info?.role === 'user' && item.info?.role !== 'user' ? true : undefined;
+    return <MessageBubble message={item} colors={colors} showDivider={showDivider} />;
+  }, [messages, colors]);
+
+  const keyExtractor = useCallback((item: SessionMessageResponse) => item.info?.id || `msg-${Date.now()}-${Math.random()}`, []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
@@ -296,7 +372,7 @@ export default function ChatScreen() {
           <FlatList
             ref={flatListRef}
             data={messages}
-            keyExtractor={(item) => item.info.id}
+            keyExtractor={keyExtractor}
             renderItem={renderMessage}
             contentContainerStyle={[styles.listContent, { backgroundColor: colors.background }]}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
@@ -456,5 +532,12 @@ const styles = StyleSheet.create({
   sendButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  assistantMessageContainer: {
+    paddingVertical: 8,
+  },
+  messageDivider: {
+    height: 1,
+    marginBottom: 8,
   },
 });
