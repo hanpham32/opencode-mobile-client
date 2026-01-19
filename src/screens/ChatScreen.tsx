@@ -19,6 +19,7 @@ import { MessagePart, SessionMessageResponse } from '../types/chat';
 import { getTheme, ThemeMode } from '../theme';
 import ModelSelector from '../components/ModelSelector';
 import ThemeToggle from '../components/ThemeToggle';
+import Markdown from 'react-native-markdown-display';
 
 type ChatRouteProp = RouteProp<RootStackParamList, 'Chat'>;
 type RootStackParamList = { Sessions: undefined; Chat: { sessionId?: string } };
@@ -42,6 +43,8 @@ function MessageBubble({ message, colors }: MessageItemProps) {
   
   if (!content) return null;
 
+  const bubbleTextColor = isUser ? colors.userBubbleText : colors.assistantBubbleText;
+
   return (
     <View style={[
       styles.bubbleContainer,
@@ -51,12 +54,75 @@ function MessageBubble({ message, colors }: MessageItemProps) {
         styles.bubble,
         isUser ? { backgroundColor: colors.userBubble } : { backgroundColor: colors.assistantBubble },
       ]}>
-        <Text style={[
-          styles.bubbleText,
-          isUser ? { color: colors.userBubbleText } : { color: colors.assistantBubbleText },
-        ]}>
+        <Markdown
+          style={{
+            text: {
+              color: bubbleTextColor,
+              fontSize: 16,
+              lineHeight: 22,
+            },
+            strong: {
+              fontWeight: '600',
+            },
+            em: {
+              fontStyle: 'italic',
+            },
+            blockquote: {
+              borderLeftWidth: 4,
+              borderLeftColor: bubbleTextColor,
+              paddingLeft: 12,
+              opacity: 0.8,
+            },
+            code_block: {
+              backgroundColor: 'rgba(0,0,0,0.1)',
+              padding: 12,
+              borderRadius: 8,
+              fontFamily: 'monospace',
+              fontSize: 14,
+            },
+            inline_code: {
+              backgroundColor: 'rgba(0,0,0,0.1)',
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+              borderRadius: 4,
+              fontFamily: 'monospace',
+              fontSize: 14,
+            },
+            link: {
+              color: isUser ? '#FFFFFF' : '#007AFF',
+              textDecorationLine: 'underline',
+            },
+            bullet_list: {
+              marginLeft: 16,
+            },
+            ordered_list: {
+              marginLeft: 16,
+            },
+            list_item: {
+              marginBottom: 4,
+            },
+            heading1: {
+              fontSize: 22,
+              fontWeight: '700',
+              marginBottom: 8,
+            },
+            heading2: {
+              fontSize: 20,
+              fontWeight: '600',
+              marginBottom: 6,
+            },
+            heading3: {
+              fontSize: 18,
+              fontWeight: '600',
+              marginBottom: 4,
+            },
+            paragraph: {
+              marginBottom: 8,
+            },
+          }}
+        >
           {content}
-        </Text>
+        </Markdown>
       </View>
     </View>
   );
