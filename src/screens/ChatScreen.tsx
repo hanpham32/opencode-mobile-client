@@ -191,6 +191,9 @@ export default function ChatScreen() {
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
       <View style={[styles.header, { backgroundColor: colors.headerBackground, borderBottomColor: colors.border }]}>
         <View style={styles.headerLeft}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={[styles.backButtonText, { color: colors.textPrimary }]}>←</Text>
+          </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
             {useChatStore.getState().currentSession?.title || 'Chat'}
           </Text>
@@ -284,7 +287,16 @@ const styles = StyleSheet.create({
   },
   headerLeft: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     marginRight: 12,
+  },
+  backButton: {
+    paddingRight: 8,
+  },
+  backButtonText: {
+    fontSize: 20,
+    fontWeight: '500',
   },
   headerTitle: {
     fontSize: 20,
