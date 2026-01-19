@@ -24,8 +24,8 @@ export interface ThemeColors {
 
 export const lightTheme: ThemeColors = {
   background: '#ffffff',
-  surface: '#ffffff',
-  surfaceSecondary: '#F9F9F9',
+  surface: '#F3F4F4',
+  surfaceSecondary: '#F3F4F4',
   text: '#000000',
   textSecondary: '#8E8E93',
   textPrimary: '#007AFF',
@@ -38,7 +38,7 @@ export const lightTheme: ThemeColors = {
   assistantBubbleText: '#000000',
   inputBackground: '#F2F2F7',
   headerBackground: '#ffffff',
-  itemBackground: '#ffffff',
+  itemBackground: '#F3F4F4',
   itemSelectedBackground: '#F0F8FF',
   overlay: 'rgba(0, 0, 0, 0.3)',
   error: '#FF3B30',
