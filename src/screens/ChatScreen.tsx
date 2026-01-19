@@ -309,7 +309,7 @@ export default function ChatScreen() {
           </View>
         )}
 
-        <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        <View style={[styles.inputContainer]}>
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text }]}
             value={inputText}
@@ -435,7 +435,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     padding: 12,
-    borderTopWidth: 1,
     alignItems: 'flex-end',
   },
   input: {
